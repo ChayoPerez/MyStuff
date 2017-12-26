@@ -1,0 +1,36 @@
+Ver opciones
+Se generan al hacer click en el botón
+lista vertical con up/down -> teclas/scroll
+
+Opción1:
+Curso1 - sección 2
+Curso2 - sección 3
+...
+Horario: 0 - 0 - 0 - 0 - 0 - 0
+
+Al hacer click se abre al costado:
+Opción1:
+Imagen con horario pintado
+Curso1 (sigla) - sección 2 - [color]
+Curso2 (sigla) - sección 3 - [color]
+...
+Botón: Guardar opcion
+----------------------------------
+
+Editar preferencias
+
+----------------------------------
+
+Editar Datos
+
+----------------------------------
+
+Guardar Cambios
+
+"Preferencias y base de datos actualizada."
+
+------------------------------------
+
+Cargar Opociones
+
+Parecido a Ver Opciones
