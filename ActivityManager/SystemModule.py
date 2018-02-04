@@ -123,6 +123,8 @@ class User:
 
 class Entry:
 
+   entry_width = 45
+
    def __init__(self, message, date):
       self.message = message
       self.date = date
@@ -145,7 +147,11 @@ class Entry:
       return history
 
    def text(self):
-      return str(self.date) + "\n" + self.message
+      paragraphs = self.message.split("\n")
+      corrected = []
+      for p in paragraphs:
+         corrected.append(to_paragraph(p))
+      return str(self.date) + "\n" + "\n".join(corrected)
 
    def __str__(self):
       text = str(self.date) + ";" + self.message
@@ -206,3 +212,31 @@ class Date:
    def __str__(self):
       text = str(self.day) + "/" + str(self.month)
       return text
+
+def to_paragraph(text):
+   entry_width = Entry.entry_width
+   words = text.split(" ")
+   lines = []
+   current_line = ""
+   for word in words:
+      if len(current_line + " " + word) <= entry_width:
+         if len(current_line) == 0:
+            current_line = word
+         else:
+            current_line += " " + word
+
+      else:
+         if len(current_line) == 0:
+            current_line = word
+            lines.append(current_line)
+            current_line = ""
+         else:
+            lines.append(current_line)
+            current_line = word
+
+      if word == words[-1]:
+         lines.append(current_line)
+
+   spaced_message = "\n".join(lines)
+
+   return spaced_message

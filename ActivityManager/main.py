@@ -24,6 +24,8 @@ class MainWindow (QWidget):
       if key_code == 16777220:
          if self.sign_in_window.active:
             self.sign_in_window.press_enter()
+      if self.menu.active:
+         self.menu.press_key()
 
    def init_gui(self):
       self.show()
@@ -156,6 +158,8 @@ class EnterName (WindowManager):
 
 class Menu (WindowManager):
 
+   valid_entry_length = 100
+
    def init_gui(self):
 
       self.title = QLabel("Menu", self.main_window)
@@ -204,11 +208,16 @@ class Menu (WindowManager):
       self.level.setFixedWidth(100)
       self.level.move(220, 260)
 
+      self.char_count = QLabel("0/" + str(Menu.valid_entry_length), self.main_window)
+      self.char_count.move(220, 215)
+
       self.objects.append(self.title)
       self.objects.append(self.instruction)
       self.objects.append(self.enter_text)
       self.objects.append(self.submit_button)
       self.objects.append(self.open_history_button)
+      self.objects.append(self.level)
+      self.objects.append(self.char_count)
 
       self.hide()
 
@@ -219,6 +228,7 @@ class Menu (WindowManager):
          self.level.setText("Lvl " + self.main_window.user.get_level())
       if not self.open:
          self.enter_text.setText(self.main_window.user.get_last_entry())
+         self.set_char_count()
          if not (self.notice in self.objects):
             self.objects.remove(self.submit_button)
             self.objects.append(self.notice)
@@ -226,11 +236,33 @@ class Menu (WindowManager):
             self.level.setText("Lvl " + self.main_window.user.get_level())
       self.show()
 
+   def set_char_count(self):
+      text = self.enter_text.toPlainText()
+      self.char_count.setText(str(len(text)) + "/" + str(Menu.valid_entry_length))
+      self.char_count.resize(self.char_count.sizeHint())
+      if len(text) <= Menu.valid_entry_length:
+         self.char_count.setStyleSheet('color: black')
+      else:
+         self.char_count.setStyleSheet('color: red')
+
+   def press_key(self):
+      print("tecla")
+      text = self.enter_text.toPlainText()
+      print(text, len(text))
+      if len(text) <= Menu.valid_entry_length:
+         self.enter_text.setStyleSheet('color: black')
+      else:
+         self.enter_text.setStyleSheet('color: red')
+      self.set_char_count()
+
    def submit(self):
       print("submit")
       text = self.enter_text.toPlainText()
-      self.main_window.user.add_entry(text)
-      self.set()
+      if len(text) <= Menu.valid_entry_length:
+         self.main_window.user.add_entry(text)
+         self.set()
+      else:
+         print("too long!")
 
    def edit(self):
       print("edit")
@@ -245,11 +277,16 @@ class Menu (WindowManager):
  
 class HistoryViewer (QWidget):
 
+   horizontal_border = 15
+   vertical_difference = 6
+
    def __init__(self):
       super().__init__()
       self.setWindowTitle('History')
-      self.setGeometry(100, 100, 300, 300)
+      self.setGeometry(100, 100, 300, 500)
       self.entries = User.current_user.history[::-1]
+      self.pages = []
+      self.current_page = 1
       self.init_gui()
 
    def init_gui(self):
@@ -262,18 +299,16 @@ class HistoryViewer (QWidget):
       self.show()
 
       self.prev_button = QPushButton("<<", self)
-      self.prev_button.move(30, 250)
-      self.prev_button.show()
+      self.prev_button.clicked.connect(self.prev)
+      self.prev_button.move(30, 450)
+      #self.prev_button.show()
 
       self.next_button = QPushButton(">>", self)
-      self.next_button.move(150, 250)
-      self.next_button.show()
+      self.next_button.clicked.connect(self.next)
+      self.next_button.move(150, 450)
+      #self.next_button.show()
 
       self.labels = []
-      horizontal_border = 15
-      vertical_difference = 6
-
-      last_border = 10 + self.title.height() + 10
       font = QFont()
       font.setPointSize(6)
 
@@ -281,24 +316,84 @@ class HistoryViewer (QWidget):
          label = QLabel(entry.text(), self)
          label.setFont(font)
          label.resize(label.sizeHint())
-         label.move(horizontal_border, last_border + vertical_difference)
-         label.show()
+         self.labels.append(label)
 
-         # print(last_border, label.height())
-         
-         last_border += label.height() + vertical_difference
+      self.load_pages()
+      self.set_page()
 
-      def set_page(self):
-         pass
+   def load_pages(self):
+      for i in range(0, len(self.labels)):
+         current = self.labels[i]
+         if len(self.pages) == 0:
+            new = Page(self)
+            self.pages.append(new)
+         if self.pages[len(self.pages) - 1].enough_space(current):
+            self.pages[len(self.pages) - 1].add(current)
+         else:
+            new = Page(self)
+            self.pages.append(new)
+            self.pages[len(self.pages) - 1].add(current)
 
-      def fix_pages(self):
-         pass
+   def set_page(self):
+      for label in self.labels:
+         label.hide()
 
-      def next(self):
-         pass
+      last_border = 10 + self.title.height() + 10
+      entries = self.pages[self.current_page - 1].get_entries()
+      for entry in entries:
+         entry.move(HistoryViewer.horizontal_border, last_border + HistoryViewer.vertical_difference)
+         entry.show()
+         last_border += entry.height() + HistoryViewer.vertical_difference
 
-      def prev(self):
-         pass
+      if self.current_page > 1:
+         self.prev_button.show()
+      else:
+         self.prev_button.hide()
+      if self.current_page < len(self.pages):
+         self.next_button.show()
+      else:
+         self.next_button.hide()
+
+   def next(self):
+      if self.current_page < len(self.pages):
+         self.current_page += 1
+         self.set_page()
+
+   def prev(self):
+      if self.current_page > 1:
+         self.current_page -= 1
+         self.set_page()
+
+
+class Page:
+
+   max_border = 450
+
+   def __init__(self, viewer):
+      self.entries = []
+      self.viewer = viewer
+
+   @property
+   def height(self):
+      x = 10 + self.viewer.title.height() + 10
+      for entry in self.entries:
+         x += entry.height() + HistoryViewer.vertical_difference
+      return x
+
+   def get_entries(self):
+      return self.entries
+
+   def enough_space(self, new_label):
+      if len(self.entries) == 0:
+         return True
+      label_height = new_label.height()
+      if self.height + label_height <= Page.max_border:
+         return True
+      else:
+         return False
+
+   def add(self, label):
+      self.entries.append(label)
 
 
 if __name__ == '__main__':
