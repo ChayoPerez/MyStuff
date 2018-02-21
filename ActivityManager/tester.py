@@ -15,17 +15,22 @@ class Entry:
 
 dictionary = {}
 dictionary["name"] = "a"
-dictionary["level"] = 43
+dictionary["rank"] = 43
 
-e1 = Entry("22/01", "Insanity y demas cosas interesantes osea tu ya sabes") # +1
+e1 = Entry("22/01", "Insanity y demas cosas interesantes osea tu ya sabesInsanity y demas Insanity y demas cosas interesantes osea tu ya sabescosas interesantes osea tu ya sabesInsanity y demas cosas interesantes osea tu ya sabesInsanity y demas cosas interesantes osea tu ya sabes") # +1
 e2 = Entry("23/01", "Patinaje y demas cosas interesantes osea tu ya sabes") # +1
 e3 = Entry("24/01", "Insanity y demas cosas interesantes osea tu ya sabes") # +1
 e4 = Entry("25/01", "Patinaje y demas cosas interesantes osea tu ya sabes y demas cosas interesantes osea tu ya sabes") # +1
-e5 = Entry("29/01", "Patinaje y demas cosas interesantes osea tu ya sabes") # +1 -1
+e5 = Entry("29/01", "Patinaje y demas cosas interesantes osea tu ya sabes\n\nInsanity y demas cosas interesantes osea tu ya sabes") # +1 -1
 e6 = Entry("30/01", "Insanity y demas cosas interesantes osea tu ya sabes") # +1
 e7 = Entry("31/01", "Patinaje ydemascosasinteresantesoseatuya sabes") # +1
-e8 = Entry("01/02", "Patinaje y demas cosas interesantes osea tu ya sabes") # +1
+e8 = Entry("01/02", "Patinaje:\ny demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabes") # +1
 # 7
+e9 = Entry("02/02", "Patinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabes") # +1
+e10 = Entry("03/02", "Patinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabes") # +1
+#e11 = Entry("04/02", "Patinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabes") # +1
+#e12 = Entry("05/02", "Patinaje y demas cosas interesantes osea tu ya sabes") # +1
+#e13 = Entry("06/02", "Patinaje y demas cosas interesantes osea tu ya sabesPatinaje y demas cPatinaje y demas cosas interesantes osea tu ya sabesosas interesantes osea tu ya sabesPatinaje y demas cosas interesantes osea tu ya sabes") # +1
 
 dictionary["n"] = len(Entry.entries)
 

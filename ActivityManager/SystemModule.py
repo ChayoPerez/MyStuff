@@ -10,48 +10,48 @@ class User:
    current_user = None
    user_folder = "User"
 
-   def __init__(self, name, level, history):
+   def __init__(self, name, rank, history):
       self.name = name
-      self.level = level
+      self.rank = rank
       self.history = history
 
-   def update_level(self):
-      self.level_up()
+   def update_rank(self):
+      self.outrank()
       if self.penance_applies:
-         self.level_down()
+         self.be_outranked()
       self.save()
 
-   def level_up(self):
-      if self.level > 1:
-         self.level -= 1
+   def outrank(self):
+      if self.rank > 1:
+         self.rank -= 1
 
-   def level_down(self):
-      if self.level < 50:
-         self.level += 1
+   def be_outranked(self):
+      if self.rank < 50:
+         self.rank += 1
 
    def add_entry(self, message):
       self.history.append(Entry(message, Date.get_today()))
-      self.update_level()
+      self.update_rank()
 
    def load_user(username):
       with open(os.path.join(User.user_folder, username + ".json")) as  file:
          dictionary = json.load(file)
       name = dictionary["name"]
-      level = dictionary["level"]
+      rank = dictionary["rank"]
       history = Entry.load_entries(dictionary)
-      User.current_user = User(name, level, history)
+      User.current_user = User(name, rank, history)
 
    def load_new_user(username):
       name = username
-      level = 50
+      rank = 50
       history = []
-      User.current_user = User(name, level, history)
+      User.current_user = User(name, rank, history)
       User.current_user.save()
 
    def save(self):
       dictionary = {}
       dictionary["name"] = self.name
-      dictionary["level"] = self.level
+      dictionary["rank"] = self.rank
       dictionary["n"] = len(self.history)
       for i in range(0, len(self.history)):
          dictionary[str(i)] = str(self.history[i])
@@ -72,9 +72,7 @@ class User:
 
    def user_exists(username):
       if (username + ".json") in os.listdir(os.path.join(User.user_folder)):
-         print("exists")
          return True
-      print("does not exist")
       return False
 
    def valid_username(username):
@@ -90,11 +88,14 @@ class User:
       else:
          return False
 
-   def valid_new_username(username):
+   def not_used_username(username):
       if User.user_exists(username):
          return False
-      elif User.valid_username(username):
-         User.load_new_user(username)
+      else:
+         return True
+
+   def well_written_username(username):
+      if User.valid_username(username):
          return True
       else:
          return False
@@ -117,8 +118,30 @@ class User:
       print("edit_last_entry")
       self.history[len(self.history) - 1].message = new_message
 
-   def get_level(self):
-      return str(self.level)
+   def get_rank(self):
+      return str(self.rank)
+
+   # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   def add_past_entry(self, message, day, month):
+      self.history.append(Entry(message, Date.get_today()))
+      self.sort_entries()
+      self.reset_rank()
+      self.save()
+
+   def reset_rank(self):
+      chrono_entries = self.history[::-1]
+      rank = 50
+      for i in range(0, len(chrono_entries)):
+         if i == 0:
+            rank -= 1
+         else:
+            previous = chrono_entries[i - 1]
+            if not Date.limit_days_since(chrono_entries[i].date, previous.date):
+               rank += 1
+      self.rank = rank
+
+   def sort_entries(self):
+      self.history = sorted(self.history, key=get_date)[::-1]
 
 
 class Entry:
@@ -160,7 +183,7 @@ class Entry:
 
 class Date:
 
-   penance = 2
+   penance = 3
 
    def __init__(self, day, month):
       self.month = month
@@ -209,9 +232,33 @@ class Date:
          else:
             return False
 
+   def is_a_date(self, day, month):
+      return True
+
    def __str__(self):
-      text = str(self.day) + "/" + str(self.month)
+      day_str = str(self.day)
+      month_str = str(self.month)
+      if self.day < 10:
+         day_str = "0" + day_str
+      if self.month < 10:
+         month_str = "0" + month_str
+      text = day_str + "/" + month_str
       return text
+
+   def __lt__(self, other): #self happened more recently than "other"
+      if other.month < self.month:
+         return True
+      elif other.month > self.month:
+         return False
+      else:
+         if other.day < self.day:
+            return True
+         elif other.day > self.day:
+            return False
+         else:
+            print("why am I comparing equal dates? {0} == {1}".format(str(self), str(other)))
+            return True
+
 
 def to_paragraph(text):
    entry_width = Entry.entry_width
@@ -240,3 +287,6 @@ def to_paragraph(text):
    spaced_message = "\n".join(lines)
 
    return spaced_message
+
+def get_date(entry):
+   return entry.date
