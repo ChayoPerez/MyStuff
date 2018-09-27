@@ -232,8 +232,23 @@ class Date:
          else:
             return False
 
+   def is_day(day):
+      if day > 0 and day < 32:
+         return True
+      else:
+         return False
+
+   def is_month(month):
+      if month > 0 and month < 13:
+         return True
+      else:
+         return False
+
    def is_a_date(self, day, month):
-      return True
+      if day <= Date.days_per_month(month):
+         return True
+      else:
+         return False
 
    def __str__(self):
       day_str = str(self.day)

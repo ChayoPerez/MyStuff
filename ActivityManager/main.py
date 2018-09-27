@@ -4,6 +4,7 @@ from PyQt5.QtCore import QCoreApplication, Qt, QSize, pyqtSignal, pyqtSlot, QObj
 from PyQt5.QtGui import QPixmap, QFont, QIcon
 from SystemModule import User
 from SystemModule import img_folder
+from SystemModule import Date
 import os
 
 
@@ -269,6 +270,7 @@ class Menu (WindowManager):
       self.change_date_button.setIcon(calendar_icon)
       self.change_date_button.resize(self.change_date_button.sizeHint())
       self.change_date_button.move(15, 121)
+      
 
       self.enter_text = MyTextEditor(self)
       self.enter_text.setFont(font)
@@ -498,15 +500,41 @@ class DayEditor (QLineEdit):
    
    def __init__(self, widget):
       super().__init__(widget)
-      self.widget = widget
+      self.editor = widget.day_box
 
    def keyPressEvent(self,e):
       #print('key pressed')
       super().keyPressEvent(e)
+      text = self.editor.text()
+      if not is_number(text):
+         self.editor.setStyleSheet('color: red')
+      else:
+         number = int(text)
+         if Date.is_day(number):
+            self.char_count.setStyleSheet('color: black')
+         else:
+            self.editor.setStyleSheet('color: red')
+
 
 class MonthEditor (QLineEdit):
    
-   pass
+   def __init__(self, widget):
+      super().__init__(widget)
+      self.editor = widget.month_box
+
+   def keyPressEvent(self,e):
+      #print('key pressed')
+      super().keyPressEvent(e)
+      text = self.editor.text()
+      if not is_number(text):
+         self.editor.setStyleSheet('color: red')
+      else:
+         number = int(text)
+         if Date.is_month(number):
+            self.char_count.setStyleSheet('color: black')
+         else:
+            self.editor.setStyleSheet('color: red')
+
 
 class MyTextEditor(QTextEdit):
 
@@ -655,6 +683,14 @@ def give_position(window_width, object_width):
    #print(half_obj)
    #print(half_window - half_obj)
    return half_window - half_obj
+
+def is_number(text):
+   for char in text:
+      if char in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+         pass
+      else:
+         return False
+   return True
 
 
 if __name__ == '__main__':
