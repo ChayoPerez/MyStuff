@@ -1,0 +1,80 @@
+s1
+Lengua y cultura mapuche s1
+6
+0
+6
+0
+0
+0
+
+s2
+Teología del cuerpo humano s1
+56
+0
+0
+0
+0
+0
+
+s3
+Teología del cuerpo humano s2
+23
+0
+0
+0
+0
+0
+
+s4
+Promoción, prevención y recuperación del sueño
+45
+0
+0
+0
+0
+0
+
+s5
+Salud intercultural s1
+0
+23
+0
+0
+0
+0
+
+s6
+Salud intercultural s2
+0
+23
+0
+0
+0
+0
+
+s7
+¿Está Dios en el escenario humano?
+0
+0
+0
+23
+0
+0
+
+s8
+El mundo de los medicamentos s1
+0
+0
+45
+0
+0
+0
+
+s9
+El mundo de los medicamentos s2
+0
+45
+0
+0
+0
+0

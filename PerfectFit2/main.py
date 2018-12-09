@@ -24,10 +24,10 @@ class MainWindow (QWidget):
       self.setWindowTitle('PerfectFit')
       self.setGeometry(0, 0, 1200, 600)
       self.system = system
-      self.selector_horarios = SelectorHorarios(self)
+      self.visualizador_horarios = VisualizadorHorarios(self)
       self.selector_cursos = SelectorCursos(self)
       self.editor_cursos = EditorCursos(self)
-      self.menu_carga = CargarOpciones(self)
+      #self.menu_carga = CargarOpciones(self)
       self.menu_guardar = GuardarPreferencias(self)
       self.init_gui()
 
@@ -67,11 +67,13 @@ class MainWindow (QWidget):
       self.boton_guardar_cambios.clicked.connect(self.guardar_cambios)
       self.boton_guardar_cambios.show()
 
+      """
       self.boton_cargar_opciones = QPushButton("Cargar Opciones", self)
       self.boton_cargar_opciones.setMinimumWidth(170)
       self.boton_cargar_opciones.move(790, 115)
       self.boton_cargar_opciones.clicked.connect(self.cargar_opciones)
       self.boton_cargar_opciones.show()
+      """
 
       self.boton_salir = QPushButton("Salir", self)
       self.boton_salir.setMinimumWidth(170)
@@ -88,16 +90,16 @@ class MainWindow (QWidget):
       self.show()
 
    def cerrar_todo(self):
-      self.selector_horarios.cerrar()
+      self.visualizador_horarios.cerrar()
       self.selector_cursos.cerrar()
       self.editor_cursos.cerrar()
       self.menu_guardar.cerrar()
-      self.menu_carga.cerrar()
+      #self.menu_carga.cerrar()
 
    def ver_opciones(self):
       print("ver opciones")
       self.cerrar_todo()
-      self.selector_horarios.abrir()
+      self.visualizador_horarios.abrir()
 
    def editar_preferencias(self):
       print("editar preferencias")
@@ -140,16 +142,63 @@ class SubWindow:
       pass
 
 
-class SelectorHorarios (SubWindow):
+class VisualizadorHorarios (SubWindow):
 
    def init_gui(self):
-      pass
+
+      self.barra = QLabel(self.main_window)
+      img_barra = QPixmap(os.path.join("Interfaz", "Negro.png")).scaled(1, 700, Qt.IgnoreAspectRatio)
+      self.barra.setPixmap(img_barra)
+      self.barra.move(400, 160)
+
+      self.titulo = QLabel("Horarios Compatibles", self.main_window)
+      self.titulo.move(90, 170)
+      font = QFont()
+      font.setPointSize(15)
+      self.titulo.setFont(font)
+
+      self.boton_back = QPushButton("<", self.main_window)
+      self.boton_back.move(95,545)
+      self.boton_back.clicked.connect(self.back)
+
+      self.boton_next = QPushButton(">", self.main_window)
+      self.boton_next.move(215,545)
+      self.boton_next.clicked.connect(self.next)
+
+
+      self.listado = ListadoOpciones(self)
 
    def cerrar(self):
-      pass
+      self.barra.hide()
+      self.titulo.hide()
+      self.boton_back.hide()
+      self.boton_next.hide()
+
+      self.listado.hide()
 
    def abrir(self):
-      pass
+
+      self.barra.show()
+      self.barra.raise_()
+
+      self.titulo.show()
+      self.titulo.raise_()
+
+      self.boton_back.show()
+      self.boton_back.raise_()
+
+      self.boton_next.show()
+      self.boton_next.raise_()
+
+      self.lista_horarios = self.main_window.system.generar_horarios()
+
+      self.listado.show()
+
+   def next(self):
+      self.listado.next()
+
+   def back(self):
+      self.listado.back()
 
 
 class SelectorCursos (SubWindow):
@@ -199,20 +248,9 @@ class SelectorCursos (SubWindow):
       self.titulo_secciones.setFont(font)
 
       self.cuadro_secciones = QLabel(self.main_window)
-      img_cuadro_s = QPixmap(os.path.join("Interfaz", "GrisClaro.png")).scaled(300, 270, Qt.IgnoreAspectRatio)
+      img_cuadro_s = QPixmap(os.path.join("Interfaz", "GrisClaro.png")).scaled(480, 270, Qt.IgnoreAspectRatio)
       self.cuadro_secciones.setPixmap(img_cuadro_s)
       self.cuadro_secciones.move(440, 300)
-
-      self.titulo_profesores = QLabel("Profesores:", self.main_window)
-      self.titulo_profesores.move(800, 260)
-      font = QFont()
-      font.setPointSize(12)
-      self.titulo_profesores.setFont(font)
-
-      self.cuadro_profesores = QLabel(self.main_window)
-      img_cuadro_p = QPixmap(os.path.join("Interfaz", "GrisClaro.png")).scaled(300, 270, Qt.IgnoreAspectRatio)
-      self.cuadro_profesores.setPixmap(img_cuadro_p)
-      self.cuadro_profesores.move(800, 300)
 
       self.listado = ListadoSeleccionCursos(self, 90, 210)
       self.listado_secciones = ListadoSeccionesSeleccion(self, 460, 310)
@@ -225,9 +263,7 @@ class SelectorCursos (SubWindow):
       self.nombre_curso.hide()
       self.sigla_curso.hide()
       self.titulo_secciones.hide()
-      self.titulo_profesores.hide()
       self.cuadro_secciones.hide()
-      self.cuadro_profesores.hide()
 
       self.listado.hide()
       self.listado_secciones.hide()
@@ -255,14 +291,8 @@ class SelectorCursos (SubWindow):
       self.titulo_secciones.show()
       self.titulo_secciones.raise_()
 
-      self.titulo_profesores.show()
-      self.titulo_profesores.raise_()
-
       self.cuadro_secciones.show()
       self.cuadro_secciones.raise_()
-
-      self.cuadro_profesores.show()
-      self.cuadro_profesores.raise_()
 
       self.listado.show()
       self.listado_secciones.show()
@@ -454,6 +484,7 @@ class EditorCursos (SubWindow):
          self.mostrar_numero_secciones()
       else:
          self.listado_secciones.hide()
+         self.titulo_secciones.setText("Secciones:")
 
 
    def agregar_seccion(self):
@@ -462,11 +493,18 @@ class EditorCursos (SubWindow):
 
    def guardar_cambios(self):
       if self.curso_seleccionado != None:
-         self.curso_seleccionado.nombre = self.edit_nombre_curso.text()
-         if self.curso_seleccionado.sigla != self.edit_sigla_curso.text():
-            print("cambiar sigla")
-            self.main_window.system.cambiar_sigla(self.curso_seleccionado.sigla, self.edit_sigla_curso.text())
-         self.listado.show()
+         nombre = self.edit_nombre_curso.text()
+         sigla = self.edit_sigla_curso.text()
+         if self.main_window.system.cambio_valido(self.curso_seleccionado, nombre, sigla) == "valido":
+            self.curso_seleccionado.nombre = nombre
+            if self.curso_seleccionado.sigla != sigla:
+               print("cambiar sigla")
+               self.main_window.system.cambiar_sigla(self.curso_seleccionado.sigla, sigla)
+            self.listado.show()
+         else:
+            error = self.main_window.system.cambio_valido(self.curso_seleccionado, nombre, sigla)
+            self.error = VentanaError(error)
+            self.error.show()
 
    def borrar_curso(self):
       if self.curso_seleccionado != None:
@@ -497,11 +535,11 @@ class EditorCursos (SubWindow):
 
 class VentanaBorrarCurso (QWidget):
 
-   def __init__(self, main_window):
+   def __init__(self, subwindow):
       super().__init__()
       self.setWindowTitle('Eliminar Curso')
       self.setGeometry(100, 100, 250, 100)
-      self.main_window = main_window
+      self.subwindow = subwindow
 
       self.mensaje = QLabel("¿Seguro que quieres eliminar este curso?", self)
       self.mensaje.move(20, 20)
@@ -513,10 +551,11 @@ class VentanaBorrarCurso (QWidget):
       self.boton.clicked.connect(self.eliminar)
 
    def eliminar(self):
-      self.main_window.funcion_borrar_curso()
+      self.subwindow.funcion_borrar_curso()
       self.close()
 
 
+"""
 class CargarOpciones (SubWindow):
 
    def init_gui(self):
@@ -532,6 +571,7 @@ class CargarOpciones (SubWindow):
    def abrir(self):
       self.titulo.show()
       self.titulo.raise_()
+"""
 
 
 class GuardarPreferencias (SubWindow):
@@ -596,12 +636,13 @@ class VentanaNuevoCurso (QWidget):
    def guardar(self):
       nombre = self.edit_nombre.text()
       sigla = self.edit_sigla.text()
-      if self.system.curso_valido(nombre, sigla):
+      if self.system.curso_valido(nombre, sigla) == "valido":
          self.system.agregar_curso(nombre, sigla)
          self.close()
       else:
-         self.edit_nombre.setText("ERROR")
-         self.edit_sigla.setText("ERROR")
+         error = self.system.curso_valido(nombre, sigla)
+         self.error = VentanaError(error)
+         self.error.show()
 
 
 class VentanaNuevaSeccion (QWidget):
@@ -662,12 +703,16 @@ class VentanaNuevaSeccion (QWidget):
       numero_seccion = self.edit_numero_seccion.text()
       docentes = self.edit_docentes.text()
       horario = self.edit_horario.toPlainText()
-      if self.system.seccion_valida(self.curso_seleccionado, numero_seccion, docentes, horario):
+      if self.system.seccion_valida(self.curso_seleccionado, numero_seccion, docentes, horario) == "valido":
          print("seccion creada")
          self.system.agregar_seccion(self.curso_seleccionado, numero_seccion, docentes, horario)
          self.sw.listado_secciones.show()
          self.sw.mostrar_numero_secciones()
          self.close()
+      else:
+         error = self.system.seccion_valida(self.curso_seleccionado, numero_seccion, docentes, horario)
+         self.error = VentanaError(error)
+         self.error.show()
 
 
 class ListadoCursos:
@@ -1042,9 +1087,14 @@ class ListadoSeccionesEdicion:
       self.edit_horario.setFixedWidth(80)
 
       self.boton_guardar = QPushButton("Guardar Sección", self.main_window)
-      self.boton_guardar.move(self.starting_x, self.starting_y + 200)
+      self.boton_guardar.move(self.starting_x, self.starting_y + 160)
       self.boton_guardar.clicked.connect(self.guardar)
       self.boton_guardar.setFixedWidth(100)
+
+      self.boton_borrar = QPushButton("Eliminar Sección", self.main_window)
+      self.boton_borrar.move(self.starting_x, self.starting_y + 200)
+      self.boton_borrar.clicked.connect(self.borrar_seccion)
+      self.boton_borrar.setFixedWidth(100)
 
       self.boton_next = QPushButton(">", self.main_window)
       self.boton_next.move(self.starting_x + 260, self.starting_y + 200)
@@ -1079,6 +1129,9 @@ class ListadoSeccionesEdicion:
       self.boton_guardar.show()
       self.boton_guardar.raise_()
 
+      self.boton_borrar.show()
+      self.boton_borrar.raise_()
+
       self.boton_next.show()
       self.boton_next.raise_()
 
@@ -1095,6 +1148,7 @@ class ListadoSeccionesEdicion:
       self.horario.hide()
       self.edit_horario.hide()
       self.boton_guardar.hide()
+      self.boton_borrar.hide()
       self.boton_next.hide()
       self.boton_prev.hide()
       self.edit_numero_seccion.setText("")
@@ -1107,7 +1161,6 @@ class ListadoSeccionesEdicion:
          self.state = 0
       elif self.state >= len(self.curso_seleccionado.secciones):
          self.state = len(self.curso_seleccionado.secciones) - 1
-
       self.seccion_seleccionada = self.curso_seleccionado.secciones[self.state]
 
       self.edit_numero_seccion.setText(self.seccion_seleccionada.numero)
@@ -1118,10 +1171,27 @@ class ListadoSeccionesEdicion:
       numero = self.edit_numero_seccion.text()
       docentes = self.edit_docentes.text()
       horario = self.edit_horario.toPlainText()
-      if self.sw.main_window.system.cambio_seccion_valido(self.curso_seleccionado, self.seccion_seleccionada, numero, docentes, horario):
+      if self.sw.main_window.system.cambio_seccion_valido(self.curso_seleccionado, self.seccion_seleccionada, numero, docentes, horario) == "valido":
          print("valido")
          self.seccion_seleccionada.editar(numero, docentes, horario)
          self.sw.mostrar_numero_secciones()
+      else:
+         error = self.sw.main_window.system.cambio_seccion_valido(self.curso_seleccionado, self.seccion_seleccionada, numero, docentes, horario)
+         self.error = VentanaError(error)
+         self.error.show()
+
+   def borrar_seccion(self):
+      self.ventana = VentanaBorrarSeccion(self)
+      self.ventana.show()
+
+   def funcion_borrar_seccion(self):
+      print("sección eliminada (no pasó nada)")
+      """
+      index = self.curso_seleccionado.secciones.index(self.seccion_seleccionada)
+      del self.curso_seleccionado.secciones[index]
+      self.show()
+      self.sw.mostrar_numero_secciones()
+      """
 
    def click_next(self):
       self.state += 1
@@ -1130,6 +1200,28 @@ class ListadoSeccionesEdicion:
    def click_prev(self):
       self.state -= 1
       self.llenar_informacion()
+
+
+class VentanaBorrarSeccion (QWidget):
+
+   def __init__(self, subwindow):
+      super().__init__()
+      self.setWindowTitle('Eliminar Sección')
+      self.setGeometry(100, 100, 250, 100)
+      self.subwindow = subwindow
+
+      self.mensaje = QLabel("¿Seguro que quieres eliminar esta sección?", self)
+      self.mensaje.move(20, 20)
+      self.mensaje.show()
+
+      self.boton = QPushButton("Borrar", self)
+      self.boton.move(80, 50)
+      self.boton.show()
+      self.boton.clicked.connect(self.eliminar)
+
+   def eliminar(self):
+      self.subwindow.funcion_borrar_seccion()
+      self.close()
 
 
 class ListadoSeccionesSeleccion:
@@ -1291,6 +1383,49 @@ class ListadoSeccionesSeleccion:
       index = self.state * 3 + numero - 1
       secciones = self.curso_seleccionado.secciones
       return secciones[index]
+
+
+class VentanaError (QWidget):
+
+   def __init__(self, mensaje):
+      super().__init__()
+      self.setWindowTitle('ERROR')
+      self.setGeometry(100, 100, 300, 100)
+      self.mensaje = mensaje
+      self.init_gui()
+
+   def init_gui(self):
+      font = QFont()
+      font.setPointSize(10)
+
+      self.mensaje_label = QLabel(self.mensaje, self)
+      self.mensaje_label.move(40, 30)
+      self.mensaje_label.show()
+      self.mensaje_label.setFont(font)
+      self.mensaje_label.setMinimumWidth(220)
+      self.mensaje_label.setMinimumHeight(50)
+
+   def ok(self):
+      self.close()
+
+
+class ListadoOpciones:
+
+   def __init__(self, subwindow):
+      self.sw = subwindow
+      self.main_window = subwindow.main_window
+
+   def hide(self):
+      pass
+
+   def show(self):
+      print("show listado opciones")
+
+   def next(self):
+      pass
+
+   def back(self):
+      pass
 
 
 

@@ -248,15 +248,17 @@ class Menu (WindowManager):
       self.title.setFont(font)
       self.title.move(15, 10)
 
+      """
       self.info_img = QPixmap(os.path.join("Interface", "Info_icon.png"))
       self.info_img = self.info_img.scaled(25, 25, Qt.KeepAspectRatio)
       self.more_information = QLabel(self.main_window)
       self.more_information.setPixmap(self.info_img)
       self.more_information.move(110, 20)
+      """
 
-      self.instruction = QLabel("To register your progress enter a comment\nbellow and hit SUBMIT!", self.main_window)
+      self.instruction = QLabel("To register your progress enter a comment bellow and \nhit SUBMIT!", self.main_window)
       font = QFont()
-      font.setPointSize(10)
+      font.setPointSize(12)
       self.instruction.setFont(font)
       self.instruction.setFixedWidth(445)
       self.instruction.move(15, 65)
@@ -270,7 +272,13 @@ class Menu (WindowManager):
       self.change_date_button.setIcon(calendar_icon)
       self.change_date_button.resize(self.change_date_button.sizeHint())
       self.change_date_button.move(15, 121)
-      
+
+      self.date_obj = Date.get_today()
+      self.date = QLabel("Date: " + str(self.date_obj), self.main_window)
+      font = QFont()
+      font.setPointSize(12)
+      self.date.setFont(font)
+      self.date.move(50, 121)
 
       self.enter_text = MyTextEditor(self)
       self.enter_text.setFont(font)
@@ -324,7 +332,7 @@ class Menu (WindowManager):
       # que cambie de posicion según crece el primer numero
 
       self.objects.append(self.title)
-      self.objects.append(self.more_information)
+      # self.objects.append(self.more_information)
       self.objects.append(self.instruction)
       self.objects.append(self.enter_text)
       self.objects.append(self.submit_button)
@@ -332,6 +340,7 @@ class Menu (WindowManager):
       self.objects.append(self.rank)
       self.objects.append(self.char_count)
       self.objects.append(self.change_date_button)
+      self.objects.append(self.date)
 
       self.hide()
 
@@ -372,16 +381,17 @@ class Menu (WindowManager):
       print("submit")
       text = self.enter_text.toPlainText()
       if len(text) <= Menu.valid_entry_length:
-         self.main_window.user.add_entry(text)
+         self.main_window.user.add_entry(text, self.date_obj)
          self.set()
       else:
          print("too long!")
+         
 
    def edit(self):
       print("edit")
       text = self.enter_text.toPlainText()
       if len(text) <= Menu.valid_entry_length:
-         self.main_window.user.edit_last_entry(text)
+         self.main_window.user.edit_entry(text, self.date_obj)
          self.set()
       else:
          print("too long!")
@@ -398,14 +408,40 @@ class Menu (WindowManager):
       self.selector = SelectDate(self)
 
    def press_mouse(self, x, y):
+      """
       info_x = self.more_information.x()
       info_y = self.more_information.y()
       #print(info_x, info_y)
       width = self.info_img.width()
       if x >= info_x and x < (info_x + width) and y >= info_y and y < (info_y + width):
          self.open_info()
+         pass
       else:
          pass
+      """
+      pass
+
+   def update_date(self):
+      entries = User.current_user.history[::-1]
+      dict_entries = {}
+      date_list = []
+      for entry in entries:
+         dict_entries[str(entry.date)] = entry
+      if str(self.date_obj) in dict_entries.keys():
+         entry = dict_entries[str(self.date_obj)]
+         self.enter_text.setText(entry.message)
+         self.notice.show()
+         self.edit_button.show()
+         self.submit_button.hide()
+         if not (self.notice in self.objects):
+            self.objects.append(self.notice)
+      else:
+         self.enter_text.setText("")
+         self.notice.hide()
+         self.submit_button.show()
+         self.edit_button.hide()
+         if self.notice in self.objects:
+            self.objects.remove(self.notice)
 
 
 class Info (QWidget):
@@ -449,7 +485,7 @@ class SelectDate(QWidget):
    def __init__(self, manager):
       super().__init__()
       self.setWindowTitle('Select Date')
-      self.setGeometry(100, 100, 120, 120)
+      self.setGeometry(100, 100, 170, 120)
       self.manager = manager
       self.init_gui()
 
@@ -484,56 +520,75 @@ class SelectDate(QWidget):
       self.show()
 
    def select_date(self):
-      print("date selected")
-      self.close()
+      if self.is_a_date_selected():
+         print("date selected")
+         day = int(self.day_box.text())
+         month = int(self.month_box.text())
+         self.manager.date_obj = Date(day, month)
+         self.manager.date.setText("Date: " + str(self.manager.date_obj))
+         self.manager.update_date()
+         self.close()
+      else:
+         print("Invalid date.")
 
    def keyPressEvent(self, event):
       key_code = event.key()
       if key_code == 16777220:
          self.select_date()
+         self.close()
+
 
    def is_a_date_selected(self):
-      return True
+      day = self.day_box.text()
+      month = self.month_box.text()
+      if is_number(day) and is_number(month):
+         if Date.is_day(int(day)) and Date.is_month(int(month)):
+            if Date.is_a_date(int(day), int(month)):
+               return True
+      return False
 
 
 class DayEditor (QLineEdit):
    
    def __init__(self, widget):
       super().__init__(widget)
-      self.editor = widget.day_box
+      #self.editor = widget.day_box
 
    def keyPressEvent(self,e):
       #print('key pressed')
       super().keyPressEvent(e)
-      text = self.editor.text()
-      if not is_number(text):
-         self.editor.setStyleSheet('color: red')
-      else:
-         number = int(text)
-         if Date.is_day(number):
-            self.char_count.setStyleSheet('color: black')
+      text = self.text()
+      if len(text) > 0:
+         if not is_number(text):
+            self.setStyleSheet('color: red')
          else:
-            self.editor.setStyleSheet('color: red')
+            number = int(text)
+            print(number)
+            if Date.is_day(number):
+               self.setStyleSheet('color: black')
+            else:
+               self.setStyleSheet('color: red')
 
 
 class MonthEditor (QLineEdit):
    
    def __init__(self, widget):
       super().__init__(widget)
-      self.editor = widget.month_box
+      #self.editor = widget.month_box
 
    def keyPressEvent(self,e):
       #print('key pressed')
       super().keyPressEvent(e)
-      text = self.editor.text()
-      if not is_number(text):
-         self.editor.setStyleSheet('color: red')
-      else:
-         number = int(text)
-         if Date.is_month(number):
-            self.char_count.setStyleSheet('color: black')
+      text = self.text()
+      if len(text) > 0:
+         if not is_number(text):
+            self.setStyleSheet('color: red')
          else:
-            self.editor.setStyleSheet('color: red')
+            number = int(text)
+            if Date.is_month(number):
+               self.setStyleSheet('color: black')
+            else:
+               self.setStyleSheet('color: red')
 
 
 class MyTextEditor(QTextEdit):
@@ -556,7 +611,7 @@ class HistoryViewer (QWidget):
    def __init__(self):
       super().__init__()
       self.setWindowTitle('History')
-      self.setGeometry(100, 100, 550, 800)
+      self.setGeometry(50, 50, 550, 600)
       self.entries = User.current_user.history[::-1]
       self.pages = []
       self.current_page = 1
@@ -573,19 +628,27 @@ class HistoryViewer (QWidget):
 
       self.prev_button = QPushButton("<<", self)
       self.prev_button.clicked.connect(self.prev)
-      self.prev_button.move(280, 750)
+      self.prev_button.move(280, 550)
       #self.prev_button.show()
 
       self.next_button = QPushButton(">>", self)
       self.next_button.clicked.connect(self.next)
-      self.next_button.move(400, 750)
+      self.next_button.move(400, 550)
       #self.next_button.show()
 
       self.labels = []
       font = QFont()
       font.setPointSize(10)
 
+      self.dict_entries = {}
+      self.date_list = []
       for entry in self.entries:
+         self.dict_entries[str(entry.date)] = entry
+         self.date_list.append(entry.date)
+      self.date_list.sort()
+
+      for date in self.date_list:
+         entry = self.dict_entries[str(date)]
          label = QLabel(entry.text(), self)
          label.setFont(font)
          label.resize(label.sizeHint())
@@ -645,7 +708,7 @@ class HistoryViewer (QWidget):
 
 class Page:
 
-   max_border = 725
+   max_border = 525
 
    def __init__(self, viewer):
       self.entries = []
@@ -686,7 +749,7 @@ def give_position(window_width, object_width):
 
 def is_number(text):
    for char in text:
-      if char in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+      if char in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
          pass
       else:
          return False

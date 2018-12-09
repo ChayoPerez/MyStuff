@@ -1,12 +1,10 @@
 import os
 import json
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 
 
-class System (QObject):
+class System:
 
    def __init__(self):
-      super().__init__()
       self.cursos = {}
       self.cargar_cursos()
 
@@ -15,36 +13,9 @@ class System (QObject):
          curso_cargado = Curso.cargar_curso(archivo)
          self.cursos[curso_cargado.sigla] = curso_cargado
 
-   def cargar_preferencias(self):
-      if os.path.exists(os.path.join("Data", "Preferencias", "ListaCursos.json")):
-         # cursos seleccionados
-         with open(os.path.join("Data", "Preferencias", "ListaCursos.json")) as archivo:
-            preferencias = json.load(archivo)
-         lista = preferencias["Lista"].split(",")
-         for sigla in lista:
-            self.cursos[sigla].seleccionado = True
-      for archivo in os.listdir(os.path.join("Data", "Preferencias")):
-         if archivo != "ListaCursos.json":
-            # secciones y profes descartados
-            sigla_curso = archivo[0:len(archivo)-5]
-            curso = self.cursos[sigla_curso]
-            curso.cargar_preferencias()
-
    def guardar_cursos(self):
       for curso in self.cursos.values():
          curso.guardar_curso()
-
-   def guardar_preferencias(self):
-      lista_cursos = []
-      for curso in self.cursos.values():
-         if curso.seleccionado:
-            lista_cursos.append(curso.sigla)
-      diccionario = {}
-      diccionario["Lista"] = ",".join(lista_cursos)
-      with open(os.path.join("Data", "Preferencias", self.sigla + ".json"), "w") as archivo:
-         json.dump(diccionario, archivo)
-      for curso in self.cursos.values():
-         curso.guardar_preferencias()
 
    def agregar_curso(self, nombre, sigla):
       curso = Curso(nombre, sigla)
@@ -52,15 +23,29 @@ class System (QObject):
 
    def curso_valido(self, nombre, sigla):
       if sigla in list(self.cursos.keys()):
-         return False
+         return "La sigla ya existe."
       if len(nombre) == 0:
-         return False
+         return "No hay nombre."
+      if len(sigla) == 0:
+         return "No hay sigla."
       if nombre == "ERROR":
-         return False
+         return "Nombre no válido."
       for char in sigla:
          if not char.isalnum():
-            return False
-      return True
+            return "Sigla no válida"
+      return "valido"
+
+   def cambio_valido(self, curso, nombre, sigla):
+      if sigla in list(self.cursos.keys()) and curso.sigla != sigla:
+         return "La sigla ya existe."
+      if len(nombre) == 0:
+         return "No hay nombre."
+      if len(sigla) == 0:
+         return "No hay sigla."
+      for char in sigla:
+         if not char.isalnum():
+            return "Sigla no válida"
+      return "valido"
 
    def eliminar_curso(self, sigla):
       del self.cursos[sigla]
@@ -77,42 +62,37 @@ class System (QObject):
 
    def seccion_valida(self, curso, numero_seccion, docentes, horario):
       if numero_seccion == "0":
-         print("no hay seccion 0")
-         return False
+         return "No hay sección 0."
       for seccion in curso.secciones:
          if seccion.numero == numero_seccion:
-            print("Ya existe esa sección")
-            return False
+            return "Ya existe esa sección."
       if not HorarioCurso.es_horario(horario):
-         print("Formato horario incorrecto")
-         return False
+         return "Formato de horario incorrecto."
       if not Docente.es_docente(docentes):
-         print("Docente invalido")
-         return False
-      print("seccion_valida")
-      return True
+         return "Docente inválido"
+      return "valido"
 
    def cambio_seccion_valido(self, curso_seleccionado, seccion_seleccionada, nuevo_numero, nuevo_docente, nuevo_horario):
       if nuevo_numero == "0":
-         print("no hay seccion 0")
-         return False
+         return "No hay sección 0."
       for seccion in curso_seleccionado.secciones:
          if seccion.numero == nuevo_numero:
             if seccion_seleccionada.numero == nuevo_numero:
                break
             else:
-               print("numero ya existe")
-               return False
+               return "El número ya existe."
       if not HorarioCurso.es_horario(nuevo_horario):
-         print("Formato horario incorrecto")
-         return False
+         return "Formato de horario incorrecto."
       if not Docente.es_docente(nuevo_docente):
-         print("Docente invalido")
-         return False
-      return True
+         return "Docente inválido"
+      return "valido"
 
    def agregar_seccion(self, curso, numero_seccion, docentes, horario):
       curso.agregar_seccion(numero_seccion, docentes, horario)
+
+   def generar_horarios(self):
+      horarios = []
+      return horarios
 
 
 class Curso:
@@ -137,9 +117,21 @@ class Curso:
       diccionario["Sigla"] = self.sigla
       diccionario["Nombre"] = self.nombre
       diccionario["Secciones"] = self.secciones_disponibles()
+      if self.seleccionado:
+         diccionario["Seleccionado"] = "Sí"
+      else:
+         diccionario["Seleccionado"] = "No"
+      secciones_no_seleccionadas = []
       for seccion in self.secciones:
          diccionario["Profe" + seccion.numero] = ",".join(seccion.docentes)
          diccionario["Horario" + seccion.numero] = seccion.horario.texto()
+         if seccion.seleccionado == False:
+            secciones_no_seleccionadas.append(seccion.numero)
+      if len(secciones_no_seleccionadas) == 0:
+         diccionario["Secciones No Seleccionadas"] = "-"
+      else:
+         diccionario["Secciones No Seleccionadas"] = ",".join(secciones_no_seleccionadas)
+
       with open(os.path.join("Data", "Cursos", self.sigla + ".json"), "w") as file:
          json.dump(diccionario, file)
 
@@ -147,52 +139,26 @@ class Curso:
       with open(os.path.join("Data", "Cursos", archivo)) as file:
          contenido = json.load(file)
       nuevo_curso = Curso(contenido["Nombre"], contenido["Sigla"])
+      if contenido["Seleccionado"] == "Sí":
+         nuevo_curso.seleccionado = True
+      else:
+         nuevo_curso.seleccionado = False
       secciones_disp = contenido["Secciones"].split(",")
       if secciones_disp[0] == "0":
          return nuevo_curso
-      print(archivo)
-      print(contenido["Secciones"])
-      print(secciones_disp)
       for seccion_n in secciones_disp:
          profe = contenido["Profe" + seccion_n]
          horario = contenido["Horario" + seccion_n]
          nuevo_curso.secciones.append(Seccion(seccion_n, profe, horario, nuevo_curso))
+      lista_secciones_no = contenido["Secciones No Seleccionadas"]
+      nuevo_curso.cargar_preferencias_secciones(lista_secciones_no.split(","))
       return nuevo_curso
 
-   def cargar_preferencias(self):
-      with open(os.path.join("Data", "Preferencias", self.sigla + ".json")) as archivo:
-         contenido = json.load(archivo)
-      lista_profes = contenido["Profes"].split(",")
-      lista_secciones = contenido["Secciones"].spit(",")
-      if len(lista_profes) == 1 and lista_profes[0] == "-":
-         pass
-      else:
-         for profe in lista_profes:
-            self.profes[profe].seleccionado = False
-      if len(lista_secciones) == 1 and lista_secciones[0] == "-":
-         pass
-      else:
-         for seccion in lista_secciones:
-            self.secciones[seccion].seleccionado = False
-
-   def guardar_preferencias(self):
-      lista_profes_no = []
-      lista_secciones_no = []
-      for profe in self.profes.values():
-         if profe.seleccionado == False:
-            lista_profes_no.append(profe.nombre)
-      if len(lista_profes_no) == 0:
-         lista_profes_no.append("-")
-      for seccion in self.secciones.values():
-         if seccion.seleccionado == False:
-            lista_secciones_no.append(seccion.numero)
-      if len(lista_secciones_no) == 0:
-         lista_secciones_no.append("-")
-      diccionario = {}
-      diccionario["Profes"] = ",".join(lista_profes_no)
-      diccionario["Secciones"] = ",".join(lista_secciones_no)
-      with open(os.path.join("Data", "Preferencias", self.sigla + ".json"), "w") as archivo:
-         json.dump(diccionario, archivo)
+   def cargar_preferencias_secciones(self, lista):
+      print(lista)
+      for seccion in self.secciones:
+         if seccion.numero in lista:
+            seccion.seleccionado = False
 
    def agregar_seccion(self, numero_seccion, docentes, horario):
       nueva_seccion = Seccion(numero_seccion, docentes, horario, self)
@@ -225,10 +191,6 @@ class Seccion:
 
 
 class Docente:
-
-   def __init__(self, nombre):
-      self.nombre = nombre
-      self.seleccionado = True
 
    def es_docente(text):
       if len(text) == 0:
@@ -308,10 +270,7 @@ class Horario:
    def inscribir_curso(self, horario_curso):
       for i in range(0,6):
          for modulo in horario_curso.semana[i]:
-            if self.semana[i] == 0:
-               self.semana[i] = [modulo]
-            else:
-               self.semana[i].append(modulo)
+            self.semana[i].append(modulo)
 
    def hay_tope(self, horario_curso):
       for i in range(0,6):
@@ -320,10 +279,18 @@ class Horario:
                return True
       return False
 
+   def texto(self):
+      semana_texto = []
+      for dia in self.semana:
+         semana_texto.append(",".join(dia))
+         dia.sort()
+      return "-".join(semana_texto)
+
 
 class Alternativa:
 
-   def __init__(self):
+   def __init__(self, numero):
+      self.numero = str(numero)
       self.horario = Horario()
       self.cursos = []
 
@@ -333,3 +300,20 @@ class Alternativa:
    def agregar_seccion(self, curso, seccion):
       self.cursos.append((curso, seccion.numero))
       self.horario.inscribir_curso(seccion.horario)
+
+   def texto_corto(self):
+      texto = "Alternativa " + self.numero + "\n"
+      texto = texto + "Horario: " + self.horario.texto()
+      return texto
+
+   def texto_largo(self):
+      texto = "Alternativa " + self.numero + "\n"
+      texto = texto + "Cursos:\n" + self.texto_cursos()
+      texto = texto + "Horario: " + self.horario.texto()
+      return texto
+
+   def texto_cursos(self):
+      texto = ""
+      for curso in self.cursos:
+         texto = texto + curso[0].nombre + " - Sección " + curso[1] + "\n"
+      return texto 

@@ -1,0 +1,62 @@
+s1
+Edward Arevalo
+0
+45
+0
+0
+0
+0
+
+s2
+Edward Arevalo
+0
+67
+0
+0
+0
+0
+
+s3
+Edward Arevalo
+0
+0
+45
+0
+0
+0
+
+s4
+Edward Arevalo
+0
+0
+67
+0
+0
+0
+
+s5
+Edward Arevalo
+0
+0
+0
+45
+0
+0
+
+s6
+Edward Arevalo
+0
+0
+0
+67
+0
+0
+
+s7
+Edward Arevalo
+67
+0
+0
+0
+0
+0

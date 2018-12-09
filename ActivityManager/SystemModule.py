@@ -29,8 +29,8 @@ class User:
       if self.rank < 50:
          self.rank += 1
 
-   def add_entry(self, message):
-      self.history.append(Entry(message, Date.get_today()))
+   def add_entry(self, message, date):
+      self.history.append(Entry(message, date))
       self.update_rank()
 
    def load_user(username):
@@ -114,9 +114,14 @@ class User:
       last_entry = self.history[len(self.history) - 1]
       return last_entry.message
 
-   def edit_last_entry(self, new_message):
-      print("edit_last_entry")
-      self.history[len(self.history) - 1].message = new_message
+   def edit_entry(self, new_message, date):
+      print("edit_entry")
+      dictionary = {}
+      date_list = []
+      for entry in self.history:
+         dictionary[str(entry.date)] = entry
+      dictionary[str(date)].message = new_message
+      self.save()
 
    def get_rank(self):
       return str(self.rank)
@@ -244,7 +249,7 @@ class Date:
       else:
          return False
 
-   def is_a_date(self, day, month):
+   def is_a_date(day, month):
       if day <= Date.days_per_month(month):
          return True
       else:
